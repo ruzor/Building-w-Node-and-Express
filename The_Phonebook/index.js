@@ -1,81 +1,132 @@
-const db = require('./db.json')
-let persons = db.persons;
+require('dotenv').config();
+
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const app = express();
+const Person = require('./models/person');
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static('build'));
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
-});
-
-app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id - 1;
-
-    if (!persons[id]) {
-        return response.status(400).json({
-            error: 'content missing'
-        })
-    }
-    response.json(persons[id]);
-});
-
-app.get('/info', (request, response) => {
-    response.send(`<div>
-        <p>Phonebook has info for ${persons.length} people</p>
-        <p>${new Date}</p>
-    </div>`)
-});
-
 morgan.token('res-body', (request, response) => response.body);
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :res-body'));
 
-app.post('/api/persons', (request, response) => {
+app.get('/api/persons',
+    (request, response, next) => {
+        Person.find({})
+            .then(persons => response.send(persons.map(person => person.toJSON())))
+            .catch(error => next(error))
+    }
+);
+
+app.get('/api/persons/:id',
+    (request, response, next) => {
+        Person.findById(request.params.id)
+            .then(person => {
+                if (person) {
+                    response.send(person);
+                } else {
+                    response.status(404).end();
+                }
+            })
+            .catch(error => next(error))
+    }
+);
+
+app.get('/info',
+    (request, response, next) => {
+        Person.countDocuments()
+            .then(total => {
+                response.send(`<div>
+                    <p>Phonebook has info for ${total} people</p>
+                    <p>${new Date}</p>
+                </div>`)
+            })
+            .catch(error => next(error))
+    }
+);
+
+const addPerson = (request, response, next) => {
     const body = request.body;
     const name = body.name;
     const number = body.number;
-    const nameMatch = persons.filter(person => person.name === name);
 
     if (!name || !number) {
-        return response.status(422).json({
-            error: 'missing either name or number'
-        })
-    } else if (nameMatch.length !== 0) {
-        return response.status(403).json({
-            error: 'name has been taken'
-        })
+        return response.status(400).send({ error: 'missing either name or number' })
     }
 
-    const generateId = () => Math.floor((Math.random() * 10000) + 1);
+    const person = new Person({
+        name,
+        number
+    });
+
+    person.save()
+        .then(result => {
+            response.json(result);
+        })
+        .catch(error => next(error))
+}
+
+app.post('/api/persons', addPerson);
+
+const updateNumber = (request, response, next) => {
+
+    // updating person number in database
+
+    const body = request.body;
+    const name = body.name;
+    const number = body.number;
+
+    if (!name || !number) {
+        return response.status(400).send({ error: 'missing either name or number' })
+    }
 
     const person = {
-        name: body.name,
-        number: body.number,
-        id: generateId(),
+        name,
+        number
     }
 
-    // updating database w/ person info
-    persons.concat(person);
+    Person.findByIdAndUpdate(request.params.id, { number })
+        .then(result => {
+            let { id, name } = result.toJSON();
+            response.json({ id, name, number });
+        })
+        .catch(error => next(error))
+}
 
-    response.body = JSON.stringify(person);
-    response.json(person);
-});
+app.put('/api/persons/:id', updateNumber);
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+const deletePerson = (request, response, next) => {
 
     // deleting person from database
-    persons = persons.filter(person => person.id !== id)
 
-    response.status(204).end()
-});
+    Person.findByIdAndRemove(request.params.id)
+        .then(() => {
+            response.status(204).end()
+        })
+        .catch(error => next(error))
+}
+
+app.delete('/api/persons/:id', deletePerson);
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+
+    next(error);
+}
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
+
+// fix response.body for morgan
