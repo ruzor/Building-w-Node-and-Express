@@ -1,21 +1,5 @@
-require('dotenv').config();
-
 const mongoose = require('mongoose');
 // const uniqueValidator = require('mongoose-unique-validator');
-
-const url = process.env.MONGODB_URI;
-
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-    .then(() => {
-        console.log('connected to MongoDB');
-    })
-    .catch((error) => {
-        console.log('error connecting to MongoDB:', error.message);
-    });
-
-mongoose.set('useFindAndModify', false);
-
-// blogSchema.plugin(uniqueValidator, { type: 'mongoose-unique-validator' });
 
 const blogSchema = new mongoose.Schema({
     title: {type: String, required: true},
@@ -23,6 +7,8 @@ const blogSchema = new mongoose.Schema({
     url: {type: String, required: true},
     likes: {type: Number}
 });
+
+// blogSchema.plugin(uniqueValidator, { type: 'mongoose-unique-validator' });
 
 blogSchema.set('toJSON', {
     virtuals: true,
