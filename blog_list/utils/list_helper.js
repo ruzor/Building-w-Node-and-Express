@@ -9,7 +9,7 @@ const favoriteBlog = (blogs) => {
   if (blogs.length===0) return {};
 
   let title, author, likes, rest;
-  const maxLikes = Math.max(blogs.map(blog => blog.likes));
+  const maxLikes = Math.max(...blogs.map(blog => blog.likes));
   console.log(maxLikes);
   const maxLikesBlog = blogs.find(blog => blog.likes === maxLikes);
 

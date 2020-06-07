@@ -39,12 +39,12 @@ describe('favorite blog', () => {
     expect(result).toEqual({});
   });
 
-  test('to have title, author, and likes property of argument blog', () => {
+  test('should have title, author, and likes property of argument blog', () => {
     const result = listHelper.favoriteBlog(listWithOneBlog);
     expect(result).toEqual({ title: 'Go To Statement Considered Harmful', author: 'Edsger W. Dijkstra', likes: 5 });
   });
 
-  test('to have title, author, and likes\' properties of most liked blog', () => {
+  test('should have title, author, and likes property of most liked blog', () => {
     const result = listHelper.favoriteBlog(blogs);
     expect(result).toEqual({ title: 'Canonical string reduction', author: 'Edsger W. Dijkstra', likes: 12 });
   });
