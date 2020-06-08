@@ -49,3 +49,15 @@ describe('favorite blog', () => {
     expect(result).toEqual({ title: 'Canonical string reduction', author: 'Edsger W. Dijkstra', likes: 12 });
   });
 });
+
+describe('highest blog count', () => {
+  test('of empty blog list is zero', () => {
+    const result = listHelper.mostBlogs(listWithNoBlog);
+    expect(result).toBe(0);
+  });
+
+  test('if more than one blog repeats equally', () => {
+    const result = listHelper.mostBlogs(blogs);
+    expect(result).toEqual({ author: 'Robert C. Martin', blogs: 3 });
+  });
+});
