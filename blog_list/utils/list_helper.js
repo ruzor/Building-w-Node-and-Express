@@ -23,8 +23,8 @@ const mostBlogs = (blogs) => {
   if (!blogs.length) return 0;
 
   // sort blogs clone according to author alphabetically, then reverse
-  let count = 1, temp = [...blogs].sort((a, b) => a.author - b.author).reverse();
-  // console.log(temp);
+  let count = 1, temp = [...blogs].sort((a, b) => a.author.localeCompare(b.author)).reverse();
+
   // get author, count of author with most blogs
   return temp.reduce((acc, blog) => {
     if (acc.author !== blog.author)
