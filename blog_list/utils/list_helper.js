@@ -1,12 +1,12 @@
-const totalLikes = (blogs) => {
-  if (blogs.length === 0) return 0;
+const totalLikes = blogs => {
+  if (!blogs.length) return 0;
 
   let total = blogs.reduce((acc, init) => acc + init.likes, 0);
   return total;
 };
 
-const favoriteBlog = (blogs) => {
-  if (blogs.length === 0) return {};
+const favoriteBlog = blogs => {
+  if (!blogs.length) return {};
 
   let title, author, likes, rest;
   const maxLikes = Math.max(...blogs.map(blog => blog.likes));
@@ -19,8 +19,8 @@ const favoriteBlog = (blogs) => {
   return { title, author, likes };
 };
 
-const mostBlogs = (blogs) => {
-  if (!blogs.length) return 0;
+const mostBlogs = blogs => {
+  if (!blogs.length) return {};
 
   // sort blogs clone according to author alphabetically, then reverse
   let count = 1, temp = [...blogs].sort((a, b) => a.author.localeCompare(b.author)).reverse();
@@ -38,8 +38,27 @@ const mostBlogs = (blogs) => {
   });
 };
 
+const mostLikes = blogs => {
+  if (!blogs.length) return {};
+
+  let authors = {};
+  blogs.forEach(blog => {
+    if (authors[blog.author]) {
+      authors[blog.author] += blog.likes;
+    } else {
+      authors[blog.author] = blog.likes;
+    }
+  });
+
+  // convert authors object containing name, likes as key, value pairs to 2D array and sort by authors' likes then return last array as object
+  authors = Object.entries(authors).sort((a, b) => a[1] - b[1]);
+  const [ author, likes ] = authors[authors.length - 1];
+  return { author, likes };
+};
+
 module.exports = {
-  mostBlogs,
   favoriteBlog,
+  mostBlogs,
+  mostLikes,
   totalLikes
 };
