@@ -24,6 +24,16 @@ test('notes are returned as json', async (done) => {
     .expect(200)
     .expect('Content-Type', /application\/json/);
   expect(res.body).toHaveLength(helper.blogs.length);
+
+  done();
+});
+
+test('notes have id property', async (done) => {
+  const res = await api.get('/api/blogs');
+  for (let body of res.body) {
+    expect(body.id).toBeDefined();
+  }
+
   done();
 });
 
