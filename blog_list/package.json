@@ -8,15 +8,21 @@
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix --ext .js,.jsx .",
-    "test": "cross-env NODE_ENV=test jest --verbose"
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand --detectOpenHandles"
   },
   "author": "Sunny Jones",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^7.2.0",
-    "jest": "^26.0.1"
+    "jest": "^26.0.1",
+    "nodemon": "^2.0.4"
   },
   "jest": {
     "testEnvironment": "node"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.2",
+    "express-async-errors": "^3.1.1",
+    "supertest": "^4.0.2"
   }
 }
