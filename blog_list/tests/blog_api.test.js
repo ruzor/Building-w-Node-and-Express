@@ -10,67 +10,104 @@ beforeEach(async () => {
   await Blog.deleteMany({});
 
   const blogObjects = helper.blogs.map(blog => new Blog(blog));
-  //   for (let blog of helper.blogs) {
-  //     let blogObject = new Blog(blog);
-  //     await blogObject.save();
-  //   }
-
   const promiseArray = blogObjects.map(blog => blog.save());
+
   await Promise.all(promiseArray);
 });
 
-test('blogs are returned as json', async (done) => {
-  const res = await api.get('/api/blogs')
-    .expect(200)
-    .expect('Content-Type', /application\/json/);
-  expect(res.body).toHaveLength(helper.blogs.length);
+describe('viewing all', () => {
+  test('blogs are returned as json', async (done) => {
+    const res = await api.get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+    expect(res.body).toHaveLength(helper.blogs.length);
 
-  done();
+    done();
+  });
+
+  test('blogs have id property', async (done) => {
+    const res = await api.get('/api/blogs');
+    for (let body of res.body) {
+      expect(body.id).toBeDefined();
+    }
+
+    done();
+  });
 });
 
-test('blogs have id property', async (done) => {
-  const res = await api.get('/api/blogs');
-  for (let body of res.body) {
-    expect(body.id).toBeDefined();
-  }
+describe('viewing a specific blog', () => {
+  test('with missing likes\', likes property defaults to zero', async (done) => {
+    const blog = new Blog(helper.blogWithNoLikes);
+    const res = await api.post('/api/blogs')
+      .send(blog)
+      .expect(201);
+    expect(res.body.likes).toBe(0);
 
-  done();
+    done();
+  });
+
+  test('succeeds with a valid id', async (done) => {
+    const res = await api.get(`/api/blogs/${helper.listWithOneBlog._id}`);
+    expect(res.body).toEqual({
+      id: '5a422aa71b54a676234d17f8',
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+      likes: 5
+    });
+
+    done();
+  });
 });
 
-test('a valid blog can be added', async (done) => {
-  const blog = new Blog(helper.listWithOneBlog);
+describe('addition of a new blog', () => {
+  test('is valid', async (done) => {
+    const blog = new Blog(helper.listWithOneBlog);
 
-  await api.post('/api/blogs')
-    .send(blog)
-    .expect(201)
-    .expect('Content-Type', /application\/json/);
+    await api.post('/api/blogs')
+      .send(blog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
 
-  const blogsAtEnd = await helper.blogsInDb();
-  expect(blogsAtEnd).toHaveLength(helper.blogs.length + 1);
+    const blogsAtEnd = await helper.blogsInDb();
+    expect(blogsAtEnd).toHaveLength(helper.blogs.length + 1);
 
-  const blogTitles = blogsAtEnd.map(n => n.title);
-  expect(blogTitles).toContain('Go To Statement Considered Harmful');
+    const blogTitles = blogsAtEnd.map(n => n.title);
+    expect(blogTitles).toContain('Go To Statement Considered Harmful');
 
-  done();
+    done();
+  });
+
+  test('by making a bad Request: if title and url is amiss return 400', async (done) => {
+    const blog = new Blog(helper.badBlogFormat);
+    await api.post('/api/blogs')
+      .send(blog)
+      .expect(400);
+
+    done();
+  });
 });
 
-test('missing likes\' property defaults to zero', async (done) => {
-  const blog = new Blog(helper.blogWithNoLikes);
-  const res = await api.post('/api/blogs')
-    .send(blog)
-    .expect(201);
-  expect(res.body.likes).toBe(0);
+describe('making changes by', () => {
+  test('updating likes of individual blog post', async (done) => {
+    await api.put(`/api/blogs/${helper.listWithOneBlog._id}`)
+      .send({ likes: 6 });
 
-  done();
-});
+    const res = await api.get(`/api/blogs/${helper.listWithOneBlog._id}`);
+    expect(res.body.likes).toEqual(6);
 
-test('400: Bad Request; if title and url is amiss', async (done) => {
-  const blog = new Blog(helper.badBlogFormat);
-  await api.post('/api/blogs')
-    .send(blog)
-    .expect(400);
+    done();
+  });
 
-  done();
+  test('deleting a single resource', async(done) => {
+    await api.delete(`/api/blogs/${helper.listWithOneBlog._id}`)
+      .expect(204);
+
+    const blogsAtEnd = await helper.blogsInDb();
+    expect(blogsAtEnd).toHaveLength(helper.blogs.length - 1);
+
+    done();
+  });
 });
 
 afterAll(() => {
