@@ -15,6 +15,9 @@ blogSchema.set('toJSON', {
   versionKey: false,
   transform: (document, returnedObject) => {
     delete returnedObject._id;
+    if (!returnedObject.likes) {
+      returnedObject.likes = 0;
+    }
   }
 });
 
