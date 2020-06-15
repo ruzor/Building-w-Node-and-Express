@@ -21,10 +21,8 @@ const userSchema = new mongoose.Schema({
       ref: 'Blog'
     }
   ],
-  passwordHash: {
-    type: String,
-    required: true
-  }
+  password: String,
+  passwordHash: String
 });
 
 userSchema.plugin(uniqueValidator, { type: 'mongoose-unique-validator' });
