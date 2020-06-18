@@ -8,15 +8,14 @@ usersRouter.get('/', async (request, response) => {
     {
       url: 1,
       title: 1,
-      author: 1,
-      likes: 1
+      author: 1
     }
   );
 
   response.json(users.map(user => user.toJSON()));
 });
 
-usersRouter.use(middleware.passwordIsValid);
+usersRouter.use(middleware.validatePassword);
 
 usersRouter.post('/', async (request, response) => {
   const saltRounds = 10;

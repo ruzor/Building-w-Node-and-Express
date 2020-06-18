@@ -8,7 +8,7 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
-const passwordIsValid = (request, response, next) => {
+const validatePassword = (request, response, next) => {
   const { password } = request.body;
 
   const validPassword = () => password.length >= 3;
@@ -43,7 +43,7 @@ const errorHandler = (error, request, response, next) => {
 };
 
 module.exports = {
-  passwordIsValid,
+  validatePassword,
   requestLogger,
   unknownEndpoint,
   errorHandler
