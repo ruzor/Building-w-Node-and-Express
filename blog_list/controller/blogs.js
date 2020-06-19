@@ -27,10 +27,12 @@ blogsRouter.post('/', async (request, response) => {
 
   // if user exists, add user id to blog object
   request.body.user = user._id;
+  request.body.likes = request.body.likes? request.body.likes : 0;
   const blog = new Blog(request.body);
 
   const savedBlog = await blog.save();
 
+  // --------update user schema that created the blog-------->
   const query = {
     '_id': user._id
   };
@@ -42,6 +44,7 @@ blogsRouter.post('/', async (request, response) => {
   const options = { 'upsert': false };
 
   await User.updateOne(query, update, options);
+  // -------------------------------------------->
 
   response.status(201).json(savedBlog);
 });
