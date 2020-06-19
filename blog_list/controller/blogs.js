@@ -30,11 +30,18 @@ blogsRouter.post('/', async (request, response) => {
   const blog = new Blog(request.body);
 
   const savedBlog = await blog.save();
-  console.log(savedBlog._id);
 
-  user.blogs.push(savedBlog._id);
-  console.log(user);
-  await user.save();
+  const query = {
+    '_id': user._id
+  };
+  const update = {
+    '$push': {
+      'blogs': savedBlog._id
+    }
+  };
+  const options = { 'upsert': false };
+
+  await User.updateOne(query, update, options);
 
   response.status(201).json(savedBlog);
 });

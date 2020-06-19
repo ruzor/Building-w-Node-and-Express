@@ -49,20 +49,8 @@ describe('viewing all', () => {
 });
 
 describe('viewing a specific blog', () => {
-  test('with missing likes\', likes property defaults to zero', async (done) => {
-    let blog = helper.blogWithNoLikes;
-    blog.userId = userInDb._id;
-
-    const res = await api.post('/api/blogs')
-      .send(blog)
-      .expect(201);
-    expect(res.body.likes).toBe(0);
-
-    done();
-  });
-
   test('succeeds with a valid id', async (done) => {
-    const res = await api.get(`/api/blogs/${helper.listWithOneBlog._id}`);
+    const res = await api.get('/api/blogs/5a422aa71b54a676234d17f8');
     expect(res.body).toEqual({
       id: '5a422aa71b54a676234d17f8',
       title: 'Go To Statement Considered Harmful',
@@ -87,11 +75,22 @@ describe('addition of a new blog', () => {
       .expect('Content-Type', /application\/json/);
 
     const blogsAtEnd = await helper.blogsInDb();
-    console.log(blogsAtEnd);
     expect(blogsAtEnd).toHaveLength(helper.blogs.length + 1);
 
     const blogTitles = blogsAtEnd.map(n => n.title);
-    expect(blogTitles).toContain('Go To Statement Considered Harmful');
+    expect(blogTitles).toContain('Who These Niggaz');
+
+    done();
+  });
+
+  test('with missing likes\', likes property; likes property defaults to zero', async (done) => {
+    let blog = helper.blogWithNoLikes;
+    blog.userId = userInDb._id;
+
+    const res = await api.post('/api/blogs')
+      .send(blog)
+      .expect(201);
+    expect(res.body.likes).toBe(0);
 
     done();
   });
@@ -110,17 +109,17 @@ describe('addition of a new blog', () => {
 
 describe('making changes by', () => {
   test('updating likes of individual blog post', async (done) => {
-    await api.put(`/api/blogs/${helper.listWithOneBlog._id}`)
+    await api.put('/api/blogs/5a422a851b54a676234d17f7')
       .send({ likes: 6 });
 
-    const res = await api.get(`/api/blogs/${helper.listWithOneBlog._id}`);
+    const res = await api.get('/api/blogs/5a422a851b54a676234d17f7');
     expect(res.body.likes).toEqual(6);
 
     done();
   });
 
   test('deleting a single resource', async(done) => {
-    await api.delete(`/api/blogs/${helper.listWithOneBlog._id}`)
+    await api.delete('/api/blogs/5a422a851b54a676234d17f7')
       .expect(204);
 
     const blogsAtEnd = await helper.blogsInDb();
