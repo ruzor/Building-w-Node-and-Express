@@ -30,7 +30,7 @@ blogSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     delete returnedObject._id;
     if (!returnedObject.likes) {
-      returnedObject.likes = 0;
+      // returnedObject.likes = 0;
     }
   }
 });
