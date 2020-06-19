@@ -19,14 +19,21 @@ blogsRouter.get('/:id', async (request, response) => {
 });
 
 blogsRouter.post('/', async (request, response) => {
-  // assign blog to user
-  const user = await User.findById(request.body.userId);
+  let user = await User.findById(request.body.userId);
 
+  if (!user) {
+    throw Error('User not found');
+  }
+
+  // if user exists, add user id to blog object
   request.body.user = user._id;
   const blog = new Blog(request.body);
+
   const savedBlog = await blog.save();
+  console.log(savedBlog._id);
 
   user.blogs.push(savedBlog._id);
+  console.log(user);
   await user.save();
 
   response.status(201).json(savedBlog);

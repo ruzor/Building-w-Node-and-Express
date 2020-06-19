@@ -2,14 +2,27 @@ const mongoose = require('mongoose');
 const supertest = require('supertest');
 const app = require('../app');
 const helper = require('../utils/blog_helper');
+const userHelper = require('../utils/user_helper');
 const Blog = require('../models/blog');
-
+const User = require('../models/user');
 const api = supertest(app);
+
+const user = userHelper.singleUser;
+let userInDb;
 
 beforeEach(async () => {
   await Blog.deleteMany({});
+  await User.deleteMany({});
 
-  const blogObjects = helper.blogs.map(blog => new Blog(blog));
+  // create a new user and assign all blogs to user
+
+  userInDb = new User(user);
+  userInDb = await userInDb.save();
+
+  const blogObjects = helper.blogs.map(blog => {
+    blog.user = userInDb._id;
+    return new Blog(blog);
+  });
   const promiseArray = blogObjects.map(blog => blog.save());
 
   await Promise.all(promiseArray);
@@ -37,7 +50,9 @@ describe('viewing all', () => {
 
 describe('viewing a specific blog', () => {
   test('with missing likes\', likes property defaults to zero', async (done) => {
-    const blog = new Blog(helper.blogWithNoLikes);
+    let blog = helper.blogWithNoLikes;
+    blog.userId = userInDb._id;
+
     const res = await api.post('/api/blogs')
       .send(blog)
       .expect(201);
@@ -53,7 +68,8 @@ describe('viewing a specific blog', () => {
       title: 'Go To Statement Considered Harmful',
       author: 'Edsger W. Dijkstra',
       url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-      likes: 5
+      likes: 5,
+      user: userInDb._id.toString()
     });
 
     done();
@@ -62,7 +78,8 @@ describe('viewing a specific blog', () => {
 
 describe('addition of a new blog', () => {
   test('is valid', async (done) => {
-    const blog = new Blog(helper.listWithOneBlog);
+    let blog = helper.listWithOneBlog;
+    blog.userId = userInDb._id;
 
     await api.post('/api/blogs')
       .send(blog)
@@ -70,6 +87,7 @@ describe('addition of a new blog', () => {
       .expect('Content-Type', /application\/json/);
 
     const blogsAtEnd = await helper.blogsInDb();
+    console.log(blogsAtEnd);
     expect(blogsAtEnd).toHaveLength(helper.blogs.length + 1);
 
     const blogTitles = blogsAtEnd.map(n => n.title);
@@ -79,7 +97,9 @@ describe('addition of a new blog', () => {
   });
 
   test('by making a bad Request: if title and url is amiss return 400', async (done) => {
-    const blog = new Blog(helper.badBlogFormat);
+    let blog = helper.badBlogFormat;
+    blog.userId = userInDb._id;
+
     await api.post('/api/blogs')
       .send(blog)
       .expect(400);

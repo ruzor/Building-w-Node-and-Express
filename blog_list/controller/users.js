@@ -15,6 +15,18 @@ usersRouter.get('/', async (request, response) => {
   response.json(users.map(user => user.toJSON()));
 });
 
+usersRouter.get('/:id', async (request, response) => {
+  const user = await User.findById(request.body.id).populate('blogs',
+    {
+      url: 1,
+      title: 1,
+      author: 1
+    }
+  );
+
+  response.json(user.toJSON());
+});
+
 usersRouter.use(middleware.validatePassword);
 
 usersRouter.post('/', async (request, response) => {

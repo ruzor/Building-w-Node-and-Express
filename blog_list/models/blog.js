@@ -14,10 +14,11 @@ const blogSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  likes: Number || 0,
+  likes: Number,
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   }
 });
 
@@ -29,7 +30,7 @@ blogSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     delete returnedObject._id;
     if (!returnedObject.likes) {
-      // returnedObject.likes = 0;
+      returnedObject.likes = 0;
     }
   }
 });
